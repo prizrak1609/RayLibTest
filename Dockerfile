@@ -23,7 +23,6 @@ WORKDIR /src/build
 RUN cmake .. -G Ninja -DCUSTOMIZE_BUILD=ON -DPLATFORM="Desktop" -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Debug  \
     -DGLFW_BUILD_WAYLAND=ON
 RUN cmake --build . --target all
-RUN mv test0* /export
 
 RUN rm -rf CMakeFiles/ CMakeCache.txt
 
