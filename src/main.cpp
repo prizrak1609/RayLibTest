@@ -166,7 +166,6 @@ static void UpdateTransition(void)
             // Unload current screen
             switch (transFromScreen)
             {
-                case GameScreen::OPTIONS: UnloadOptionsScreen(); break;
                 case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
                 case GameScreen::ENDING: UnloadEndingScreen(); break;
                 default: break;
