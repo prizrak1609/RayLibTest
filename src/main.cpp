@@ -12,12 +12,17 @@
 *
 ********************************************************************************************/
 
+#include <memory>
+#include "screen/ScreenManager.h"
+#include "ResourceManager.h"
 #include "raylib.h"
-#include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
+#include "screens.h"
 
 #if defined(PLATFORM_WEB)
     #include <emscripten/emscripten.h>
 #endif
+
+using namespace screen;
 
 //----------------------------------------------------------------------------------
 // Shared Variables Definition (global)
@@ -50,12 +55,10 @@ static void TransitionToScreen(GameScreen screen); // Request transition to next
 static void UpdateTransition(void);         // Update transition effect
 static void DrawTransition(void);           // Draw transition effect (full-screen rectangle)
 
-static void UpdateDrawFrame(void);          // Update and draw one frame
+static void UpdateDrawFrame();          // Update and draw one frame
+static std::shared_ptr<ScreenManager> screenManager;
 
-//----------------------------------------------------------------------------------
-// Main entry point
-//----------------------------------------------------------------------------------
-int main(void)
+int main()
 {
     // Initialization
     //---------------------------------------------------------
@@ -71,9 +74,11 @@ int main(void)
     SetMusicVolume(music, 1.0f);
     PlayMusicStream(music);
 
-    // Setup and init first screen
-    currentScreen = GameScreen::LOGO;
-    InitLogoScreen();
+    std::shared_ptr<ResourceManager> resourceManager = std::make_shared<ResourceManager>();
+    resourceManager->loadResources();
+
+    screenManager = std::make_shared<ScreenManager>(std::static_pointer_cast<IResourceManager>(resourceManager));
+    screenManager->setStartScreen(ScreenType::LOGO);
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
@@ -85,20 +90,17 @@ int main(void)
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         UpdateDrawFrame();
+
+        if(screenManager->shouldClose()) {
+            break;
+        }
     }
 #endif
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    // Unload current screen data before closing
-    switch (currentScreen)
-    {
-        case GameScreen::LOGO: UnloadLogoScreen(); break;
-        case GameScreen::TITLE: UnloadTitleScreen(); break;
-        case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
-        case GameScreen::ENDING: UnloadEndingScreen(); break;
-        default: break;
-    }
+
+    resourceManager->unloadResources();
 
     // Unload global data loaded
     UnloadFont(font);
@@ -122,7 +124,6 @@ static void ChangeToScreen(GameScreen screen)
     // Unload current screen
     switch (currentScreen)
     {
-        case GameScreen::LOGO: UnloadLogoScreen(); break;
         case GameScreen::TITLE: UnloadTitleScreen(); break;
         case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
         case GameScreen::ENDING: UnloadEndingScreen(); break;
@@ -132,7 +133,6 @@ static void ChangeToScreen(GameScreen screen)
     // Init next screen
     switch (screen)
     {
-        case GameScreen::LOGO: InitLogoScreen(); break;
         case GameScreen::TITLE: InitTitleScreen(); break;
         case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
         case GameScreen::ENDING: InitEndingScreen(); break;
@@ -168,7 +168,6 @@ static void UpdateTransition(void)
             // Unload current screen
             switch (transFromScreen)
             {
-                case GameScreen::LOGO: UnloadLogoScreen(); break;
                 case GameScreen::TITLE: UnloadTitleScreen(); break;
                 case GameScreen::OPTIONS: UnloadOptionsScreen(); break;
                 case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
@@ -179,7 +178,6 @@ static void UpdateTransition(void)
             // Load next screen
             switch (transToScreen)
             {
-                case GameScreen::LOGO: InitLogoScreen(); break;
                 case GameScreen::TITLE: InitTitleScreen(); break;
                 case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
                 case GameScreen::ENDING: InitEndingScreen(); break;
@@ -213,81 +211,7 @@ static void DrawTransition(void)
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, transAlpha));
 }
 
-// Update and draw game frame
-static void UpdateDrawFrame(void)
+static void UpdateDrawFrame()
 {
-    // Update
-    //----------------------------------------------------------------------------------
-    //UpdateMusicStream(music);       // NOTE: Music keeps playing between screens
-
-    if (!onTransition)
-    {
-        switch(currentScreen)
-        {
-            case GameScreen::LOGO:
-            {
-                UpdateLogoScreen();
-
-                if (FinishLogoScreen()) TransitionToScreen(GameScreen::TITLE);
-
-            } break;
-            case GameScreen::TITLE:
-            {
-                UpdateTitleScreen();
-
-                if (FinishTitleScreen() == 1) TransitionToScreen(GameScreen::OPTIONS);
-                else if (FinishTitleScreen() == 2) TransitionToScreen(GameScreen::GAMEPLAY);
-
-            } break;
-            case GameScreen::OPTIONS:
-            {
-                UpdateOptionsScreen();
-
-                if (FinishOptionsScreen()) TransitionToScreen(GameScreen::TITLE);
-
-            } break;
-            case GameScreen::GAMEPLAY:
-            {
-                UpdateGameplayScreen();
-
-                if (FinishGameplayScreen() == 1) TransitionToScreen(GameScreen::ENDING);
-                //else if (FinishGameplayScreen() == 2) TransitionToScreen(TITLE);
-
-            } break;
-            case GameScreen::ENDING:
-            {
-                UpdateEndingScreen();
-
-                if (FinishEndingScreen() == 1) TransitionToScreen(GameScreen::TITLE);
-
-            } break;
-            default: break;
-        }
-    }
-    else UpdateTransition();    // Update transition (fade-in, fade-out)
-    //----------------------------------------------------------------------------------
-
-    // Draw
-    //----------------------------------------------------------------------------------
-    BeginDrawing();
-
-        ClearBackground(RAYWHITE);
-
-        switch(currentScreen)
-        {
-            case GameScreen::LOGO: DrawLogoScreen(); break;
-            case GameScreen::TITLE: DrawTitleScreen(); break;
-            case GameScreen::OPTIONS: DrawOptionsScreen(); break;
-            case GameScreen::GAMEPLAY: DrawGameplayScreen(); break;
-            case GameScreen::ENDING: DrawEndingScreen(); break;
-            default: break;
-        }
-
-        // Draw full screen rectangle in front of everything
-        if (onTransition) DrawTransition();
-
-        //DrawFPS(10, 10);
-
-    EndDrawing();
-    //----------------------------------------------------------------------------------
+    screenManager->draw();
 }

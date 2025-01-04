@@ -26,8 +26,7 @@ RUN cmake --build . --target all
 
 RUN rm -rf CMakeFiles/ CMakeCache.txt
 
-RUN emcmake cmake .. -G Ninja -DCUSTOMIZE_BUILD=ON -DPLATFORM="Web" -DBUILD_EXAMPLES=OFF \
-     -DBUILD_SHARED_LIBS=OFF
+RUN emcmake cmake .. -G Ninja -DCUSTOMIZE_BUILD=ON -DPLATFORM="Web" -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=OFF
 RUN cmake --build . --target all
 RUN mv test0* /export
 
