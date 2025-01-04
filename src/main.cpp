@@ -124,7 +124,6 @@ static void ChangeToScreen(GameScreen screen)
     // Unload current screen
     switch (currentScreen)
     {
-        case GameScreen::TITLE: UnloadTitleScreen(); break;
         case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
         case GameScreen::ENDING: UnloadEndingScreen(); break;
         default: break;
@@ -133,7 +132,6 @@ static void ChangeToScreen(GameScreen screen)
     // Init next screen
     switch (screen)
     {
-        case GameScreen::TITLE: InitTitleScreen(); break;
         case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
         case GameScreen::ENDING: InitEndingScreen(); break;
         default: break;
@@ -168,7 +166,6 @@ static void UpdateTransition(void)
             // Unload current screen
             switch (transFromScreen)
             {
-                case GameScreen::TITLE: UnloadTitleScreen(); break;
                 case GameScreen::OPTIONS: UnloadOptionsScreen(); break;
                 case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
                 case GameScreen::ENDING: UnloadEndingScreen(); break;
@@ -178,7 +175,6 @@ static void UpdateTransition(void)
             // Load next screen
             switch (transToScreen)
             {
-                case GameScreen::TITLE: InitTitleScreen(); break;
                 case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
                 case GameScreen::ENDING: InitEndingScreen(); break;
                 default: break;
