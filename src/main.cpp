@@ -29,9 +29,7 @@ using namespace screen;
 // NOTE: Those variables are shared between modules through screens.h
 //----------------------------------------------------------------------------------
 GameScreen currentScreen = GameScreen::LOGO;
-Font font = { 0 };
 Music music = { 0 };
-Sound fxCoin = { 0 };
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -56,6 +54,7 @@ static void UpdateTransition(void);         // Update transition effect
 static void DrawTransition(void);           // Draw transition effect (full-screen rectangle)
 
 static void UpdateDrawFrame();          // Update and draw one frame
+
 static std::shared_ptr<ScreenManager> screenManager;
 
 int main()
@@ -67,9 +66,7 @@ int main()
     InitAudioDevice();      // Initialize audio device
 
     // Load global data (assets that must be available in all screens, i.e. font)
-    font = LoadFont("resources/mecha.png");
     //music = LoadMusicStream("resources/ambient.ogg"); // TODO: Load music
-    fxCoin = LoadSound("resources/coin.wav");
 
     SetMusicVolume(music, 1.0f);
     PlayMusicStream(music);
@@ -77,7 +74,7 @@ int main()
     std::shared_ptr<ResourceManager> resourceManager = std::make_shared<ResourceManager>();
     resourceManager->loadResources();
 
-    screenManager = std::make_shared<ScreenManager>(std::static_pointer_cast<IResourceManager>(resourceManager));
+    std::shared_ptr<ScreenManager> screenManager = std::make_shared<ScreenManager>(std::static_pointer_cast<IResourceManager>(resourceManager));
     screenManager->setStartScreen(ScreenType::LOGO);
 
 #if defined(PLATFORM_WEB)
@@ -103,9 +100,7 @@ int main()
     resourceManager->unloadResources();
 
     // Unload global data loaded
-    UnloadFont(font);
     UnloadMusicStream(music);
-    UnloadSound(fxCoin);
 
     CloseAudioDevice();     // Close audio context
 
@@ -124,7 +119,6 @@ static void ChangeToScreen(GameScreen screen)
     // Unload current screen
     switch (currentScreen)
     {
-        case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
         case GameScreen::ENDING: UnloadEndingScreen(); break;
         default: break;
     }
@@ -132,7 +126,6 @@ static void ChangeToScreen(GameScreen screen)
     // Init next screen
     switch (screen)
     {
-        case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
         case GameScreen::ENDING: InitEndingScreen(); break;
         default: break;
     }
@@ -166,7 +159,6 @@ static void UpdateTransition(void)
             // Unload current screen
             switch (transFromScreen)
             {
-                case GameScreen::GAMEPLAY: UnloadGameplayScreen(); break;
                 case GameScreen::ENDING: UnloadEndingScreen(); break;
                 default: break;
             }
@@ -174,7 +166,6 @@ static void UpdateTransition(void)
             // Load next screen
             switch (transToScreen)
             {
-                case GameScreen::GAMEPLAY: InitGameplayScreen(); break;
                 case GameScreen::ENDING: InitEndingScreen(); break;
                 default: break;
             }
